@@ -1,6 +1,6 @@
 package com.schevenin.quarantineplugin.commands;
 
-import com.schevenin.quarantineplugin.QuarantinePlugin;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -12,11 +12,15 @@ public class EatCommand implements CommandExecutor {
         if (sender instanceof Player) {
             Player p = (Player) sender;
             if (p.hasPermission("quarantineplugin.eat")) {
-                p.setFoodLevel(20);
-                p.sendMessage("Restored hunger.");
+                if (p.getFoodLevel() < 20.0) {
+                    p.setFoodLevel(20);
+                    p.sendMessage("Restored hunger.");
+                } else {
+                    p.sendMessage("You're not hungry!");
+                }
                 return true;
             } else {
-                p.sendMessage("You don't have permission.");
+                p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have permission.");
                 return true;
             }
         } else {

@@ -1,5 +1,6 @@
 package com.schevenin.quarantineplugin.commands;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,18 +14,17 @@ public class GodCommand implements CommandExecutor {
             if (p.hasPermission("quarantineplugin.god")) {
                 if (p.isInvulnerable()) {
                     p.setInvulnerable(false);
-                    p.sendMessage("You have are now vulnerable.");
+                    p.sendMessage("God: " + ChatColor.GREEN + "ON");
                 } else {
                     p.setInvulnerable(true);
-                    p.sendMessage("You have are now invulnerable.");
+                    p.sendMessage("God: " + ChatColor.RED + "OFF");
                 }
             } else {
-                System.out.println("You don't have permission.");
+                p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have permission.");
             }
-            return true;
         } else {
             System.out.println("Must run this command as a player!");
-            return true;
         }
+        return true;
     }
 }

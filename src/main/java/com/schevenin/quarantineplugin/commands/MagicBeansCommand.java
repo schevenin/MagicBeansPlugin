@@ -17,12 +17,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MagicBeansCommand implements CommandExecutor {
+    /**
+     * COMMANDS
+     * @param sender
+     * @param command
+     * @param label
+     * @param args
+     * @return boolean
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
             Player p = (Player) sender;
             if (p.hasPermission("quarantineplugin.magicbeans")) {
-                // inventory is full
+                // If inventory is full
                 if (p.getInventory().firstEmpty() == -1) {
                     p.sendMessage(ChatColor.ITALIC + "" + ChatColor.GRAY + "I seem to be carrying too much...");
                     Location loc = p.getLocation();
@@ -35,30 +43,30 @@ public class MagicBeansCommand implements CommandExecutor {
             } else {
                 p.sendMessage("You don't have permission.");
             }
-            return true;
         } else {
             System.out.println("Must run this command as a player!");
-            return true;
         }
+        return true;
     }
 
+    /**
+     * GET BEANS
+     * @return beans
+     */
     public static ItemStack getMagicBeans() {
         ItemStack beans = new ItemStack(Material.COCOA_BEANS);
         ItemMeta meta = beans.getItemMeta();
+        List<String> lore = new ArrayList<String>();
 
         meta.setDisplayName(ChatColor.MAGIC + "" + ChatColor.BOLD + "MAGIC BEANS");
-        List<String> lore = new ArrayList<String>();
         lore.add("");
         lore.add(ChatColor.ITALIC + "Mysterious Beans They Are");
-
         meta.setLore(lore);
+        meta.setUnbreakable(true);
         meta.addEnchant(Enchantment.SILK_TOUCH, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-        meta.setUnbreakable(true);
-
         beans.setItemMeta(meta);
-
         return beans;
     }
 }
