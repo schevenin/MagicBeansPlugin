@@ -1,0 +1,60 @@
+name: QuarantinePlugin
+version: ${project.version}
+author: schevenin
+main: com.schevenin.quarantineplugin.QuarantinePlugin
+description: Quarantine & Chill Server Plugin
+api-version: 1.13
+
+
+commands:
+  quarantine:
+    aliases: [qp]
+    description: Quarantine & Chill Server Plugin v1.0
+    usage: /<command>
+  beans:
+    aliases: [magicbeans]
+    description: The world may never know...
+    usage: /<command>
+  launch:
+    description: Launch me into the air
+    usage: /<command>
+  eat:
+    description: Restores your hunger!
+    usage: /<command>
+  heal:
+    description: Restores your heatlh!
+    usage: /<command>
+  god:
+    description: Makes you invulnerable.
+    usage: /<command>
+  home:
+    description: Home commands.
+    usage: /<command>
+
+permissions:
+  quarantineplugin.launch.*:
+    description: Gives access to launch yourself and others.
+    children:
+      qt.launch.self: true
+      qt.launch.others: true
+  quarantineplugin.launch.self:
+    description: Gives access to launch yourself
+    default: false
+  quarantineplugin.launch.others:
+    description: Gives access to launch others
+    default: false
+  quarantineplugin.magicbeans:
+    description: Gives access to these special beans
+    default: false
+  quarantineplugin.eat:
+    description: Gives access to restore hunger
+    default: false
+  quarantineplugin.heal:
+    description: Gives access to restore health
+    default: false
+  quarantineplugin.god:
+    description: Gives access to make invulnerable
+    default: false
+  quarantineplugin.home:
+    description: Gives access to home commands
+    default: false
