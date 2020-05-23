@@ -1,7 +1,6 @@
 package com.schevenin.quarantineplugin;
 
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
 import java.io.Serializable;
 
@@ -19,18 +18,11 @@ public class Home implements Serializable {
         this.z_coordinate = 0.0;
     }
 
-    public Home(Player p) {
-        this.home_name = "home";
-        this.x_coordinate = p.getLocation().getX();
-        this.y_coordinate = p.getLocation().getY();
-        this.z_coordinate = p.getLocation().getZ();
-    }
-
-    public Home(Player p, String home_name) {
+    public Home(String home_name, double x, double y, double z) {
         this.home_name = home_name;
-        this.x_coordinate = p.getLocation().getX();
-        this.y_coordinate = p.getLocation().getY();
-        this.z_coordinate = p.getLocation().getZ();
+        this.x_coordinate = x;
+        this.y_coordinate = y;
+        this.z_coordinate = z;
     }
 
 
@@ -59,8 +51,14 @@ public class Home implements Serializable {
         this.z_coordinate = z_coordinate;
     }
 
+    public void updateHome(double x, double y, double z) {
+        setX(x);
+        setY(y);
+        setZ(z);
+    }
+
     @Override
     public String toString() {
-        return (ChatColor.GREEN + getName() + ChatColor.RESET + ": " + (int)getX() + ", " + (int)getY() + ", " + (int)getZ());
+        return ("" + ChatColor.GREEN + getName() + ChatColor.RESET + ": " + (int)getX() + ", " + (int)getY() + ", " + (int)getZ());
     }
 }
