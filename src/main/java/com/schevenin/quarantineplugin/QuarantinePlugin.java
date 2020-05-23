@@ -3,9 +3,10 @@ package com.schevenin.quarantineplugin;
 import com.schevenin.quarantineplugin.commands.*;
 import com.schevenin.quarantineplugin.events.*;
 
-import com.esotericsoftware.yamlbeans.YamlReader;
-import com.esotericsoftware.yamlbeans.YamlWriter;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import org.apache.commons.io.FileUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -13,17 +14,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 
 
 public final class QuarantinePlugin extends JavaPlugin {
     public static File pluginDirectory = new File("./plugins/QuarantinePlugin");
-    public static File userHomeDataFile = new File("./plugins/QuarantinePlugin/data.yml");
-    public static Map<String, ArrayList<Home>> allHomes;
-    public static YamlReader reader;
-    public static YamlWriter writer;
+    public static File userHomeDataFile = new File("./plugins/QuarantinePlugin/data.json");
+    public static File userHomeDataFileBackup = new File("./plugins/QuarantinePlugin/data.json.backup");
+    public static Map<String, List<Home>> allHomes;
 
     /**
      * PLUGIN ENABLE
@@ -40,6 +43,7 @@ public final class QuarantinePlugin extends JavaPlugin {
         getCommand("god").setExecutor(new GodCommand());
         getCommand("home").setExecutor(new HomeCommand());
         readData();
+        backupData();
         getLogger().info("QuarantinePlugin: Enabled!");
     }
 
@@ -76,56 +80,97 @@ public final class QuarantinePlugin extends JavaPlugin {
     }
 
     /**
-     * READ DATA: YAML -> HASHMAP
+     * READ DATA: JSON -> HASHMAP
      */
     public void readData() {
+        getLogger().info("Attempting to read from JSON");
         try {
-            // Ensure directory and yaml exist
-            if (!pluginDirectory.exists()) {
+            if (!(pluginDirectory.exists() && pluginDirectory.isDirectory())) {
                 pluginDirectory.mkdir();
-                getLogger().info("Plugin directory created!");
+                getLogger().info("Creating directory: QuarantinePlugin");
             }
+            // If data files don't exist
             if (!userHomeDataFile.exists()) {
-                writer = new YamlWriter(new FileWriter(userHomeDataFile));
-                writer.close();
-                getLogger().info("Data file created!");
-            }
-
-            // Read in data
-            reader = new YamlReader(new FileReader(userHomeDataFile));
-            Object object = reader.read();
-            if (object == null) {
+                userHomeDataFile.createNewFile();
                 allHomes = new HashMap<>();
-            } else {
-                allHomes = (HashMap<String, ArrayList<Home>>) object;
+                getLogger().info("Creating file: data.json");
             }
-            reader.close();
+            if (!userHomeDataFileBackup.exists()) {
+                userHomeDataFileBackup.createNewFile();
+                getLogger().info("Creating file: data.json.backup");
+            }
+            // If data files exists
+            if (userHomeDataFile.exists() && userHomeDataFileBackup.exists()) {
+                // Deserialize JSON
+                String jsonString = FileUtils.readFileToString(userHomeDataFile, StandardCharsets.UTF_8);
+                Gson gson = new Gson();
+                Type homeMapType = new TypeToken<Map<String, List<Home>>>() {}.getType();
+                allHomes = gson.fromJson(jsonString, homeMapType);
 
-            // Success
-            getLogger().info("YAML --> HashMap: Success (" + allHomes.size() + ")");
-        } catch (IOException e) {
+                // Check for null reference or empty
+                if (allHomes == null || allHomes.isEmpty() == true) {
+                    allHomes = new HashMap<>();
+                    getLogger().info("JSON --> HashMap: FAIL (JSON is null or empty.)");
+                } else {
+                    // Success
+                    getLogger().info("JSON --> HashMap: SUCCESS");
+                }
+            } else {
+                getLogger().info("File error: files could not be found.");
+            }
+        } catch (FileNotFoundException e) {
+           e.printStackTrace();
+           throw new RuntimeException("No data file found!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Could not read data file!");
+        }
+    }
+
+    /**
+     * WRITE DATA: HASHMAP -> JSON
+     */
+    public void writeData() {
+        getLogger().info("Attempting to write to JSON");
+        try {
+            // If data file doesn't exist
+            if (!userHomeDataFile.exists()) {
+                getLogger().info("HashMap --> JSON: FAIL (No data file found.)");
+            } else {
+                // Serialize HashMap
+                Gson gson = new Gson();
+                String jsonFormat = gson.toJson(allHomes);
+                Files.write(Paths.get(String.valueOf(userHomeDataFile)), jsonFormat.getBytes());
+
+                // Success
+                getLogger().info("HashMap --> JSON: SUCCESS");
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * WRITE DATA: HASHMAP -> YAML
+     * BACKUP DATA: HASHMAP -> BACKUP
      */
-    public void writeData() {
+    public void backupData() {
+        getLogger().info("Attempting to backup HashMap");
         try {
-            // Write HashMap to yaml
-            writer = new YamlWriter(new FileWriter(userHomeDataFile));
-            writer.write(allHomes);
-            writer.close();
+            // If data file doesn't exist
+            if (!userHomeDataFileBackup.exists()) {
+                getLogger().info("HashMap --> Backup: FAIL (No data file found.)");
+            } else {
+                // Serialize HashMap
+                Gson gson = new Gson();
+                String jsonFormat = gson.toJson(allHomes);
+                Files.write(Paths.get(String.valueOf(userHomeDataFileBackup)), jsonFormat.getBytes());
 
-            // Success
-            getLogger().info("HashMap --> YAML: Success (" + allHomes.size() + ")");
-        } catch (FileNotFoundException e) {
+                // Success
+                getLogger().info("HashMap --> Backup: SUCCESS");
+            }
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (NoClassDefFoundError e) {
-            //YAMLBeans issue!
         }
     }
+
 }
