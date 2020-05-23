@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 
-import static com.schevenin.quarantineplugin.QuarantinePlugin.*;
+import static com.schevenin.quarantineplugin.QuarantinePlugin.allHomes;
 import static org.bukkit.Bukkit.getLogger;
 
 public class HomeCommand implements CommandExecutor {
@@ -22,44 +22,52 @@ public class HomeCommand implements CommandExecutor {
             ArrayList<Home> playerHomes;
 
             if (p.hasPermission("quarantineplugin.home")) {
-                // Add array of user homes to reference allHomes
-                if (allHomes.isEmpty()) {
+
+                // If HashMap is null or empty
+                if (allHomes == null || allHomes.isEmpty() == true) {
                     playerHomes = new ArrayList<Home>();
-                } else {
+                }
+                // If HashMap contains data
+                else {
+                    // If HashMap contains data for player
                     if (allHomes.containsKey(unique_id)) {
-                        if (!allHomes.get(unique_id).isEmpty()) {
-                            playerHomes = allHomes.get(unique_id);
-                        } else {
-                            playerHomes = new ArrayList<Home>();
-                        }
-                    } else {
+                        playerHomes = (ArrayList<Home>) allHomes.get(unique_id);
+                    }
+                    // If HashMap doesn't contain data for the player
+                    else {
                         playerHomes = new ArrayList<Home>();
                     }
                 }
 
+                // Console & Log
+                getLogger().info("" + p.getName() + "'s homes: " + playerHomes.toString());
+
+                boolean homeExists = false;
                 switch (args.length) {
                     case 1:
                         // home list
                         if (args[0].equalsIgnoreCase("list")) {
                             if (!playerHomes.isEmpty()) {
                                 for (Home h : playerHomes) {
-                                    h.toString();
+                                    p.sendMessage(h.toString());
                                 }
                             } else {
                                 p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have any homes.");
                             }
-
                         }
                         // home <home>
                         else {
                             if (!playerHomes.isEmpty()) {
                                 for (Home h : playerHomes) {
                                     if (h.getName().equalsIgnoreCase(args[0])) {
-                                        h.toString();
+                                        p.sendMessage(h.toString());
+                                        homeExists = true;
                                         break;
                                     }
                                 }
-                                p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have a home named " + args[0]);
+                                if (!homeExists) {
+                                    p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have a home named " + args[0]);
+                                }
                             } else {
                                 p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have any homes.");
                             }
@@ -72,7 +80,6 @@ public class HomeCommand implements CommandExecutor {
                             double x = p.getLocation().getX();
                             double y = p.getLocation().getY();
                             double z = p.getLocation().getZ();
-
                             // If user enters /home add list
                             if (args[1].equalsIgnoreCase("list")) {
                                 p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": can't use the name \"list\".");
@@ -80,22 +87,20 @@ public class HomeCommand implements CommandExecutor {
                             }
                             // If player has homes
                             if (!playerHomes.isEmpty()) {
-                                boolean homeAlreadyExists = false;
+                                homeExists = false;
                                 // Check if home exists
                                 for (Home h : playerHomes) {
                                     if (h.getName().equalsIgnoreCase(args[1])) {
-                                        playerHomes.remove(h);
-                                        Home newHome = new Home(p, home_name);
-                                        playerHomes.add(newHome);
-                                        p.sendMessage("Updated home: " + ChatColor.GREEN + newHome.getName());
-                                        getLogger().info(p.getName() + " updated home: " + newHome.getName());
-                                        homeAlreadyExists = true;
+                                        h.updateHome(z, y, z);
+                                        p.sendMessage("Updated home: " + ChatColor.GREEN + h.getName());
+                                        getLogger().info(p.getName() + " updated home: " + h.getName());
+                                        homeExists = true;
                                         break;
                                     }
                                 }
                                 // If home doesn't already exist
-                                if (!homeAlreadyExists) {
-                                    Home newHome = new Home(p, home_name);
+                                if (!homeExists) {
+                                    Home newHome = new Home(home_name, x, y, z);
                                     playerHomes.add(newHome);
                                     p.sendMessage("Added home: " + ChatColor.GREEN + newHome.getName());
                                     getLogger().info(p.getName() + " added home: " + newHome.getName());
@@ -103,7 +108,7 @@ public class HomeCommand implements CommandExecutor {
                             }
                             // If player doesn't have homes
                             else {
-                                Home newHome = new Home(p, home_name);
+                                Home newHome = new Home(home_name, x, y, z);
                                 playerHomes.add(newHome);
                                 p.sendMessage("Added Home: " + ChatColor.GREEN + newHome.getName());
                                 getLogger().info(p.getName() + " added home: " + newHome.getName());
@@ -111,16 +116,20 @@ public class HomeCommand implements CommandExecutor {
                         }
                         // home remove <home>
                         else if (args[0].equalsIgnoreCase("remove")) {
+                            homeExists = false;
                             if (!playerHomes.isEmpty()) {
                                 for (Home h : playerHomes) {
                                     if (h.getName().equalsIgnoreCase(args[1])) {
                                         playerHomes.remove(h);
                                         p.sendMessage("Removed home: " + ChatColor.GREEN + args[1]);
                                         getLogger().info(p.getName() + " removed home: " + args[1]);
+                                        homeExists = true;
                                         break;
                                     }
                                 }
-                                p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have a home named " + args[1]);
+                                if (!homeExists) {
+                                    p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have a home named " + args[1]);
+                                }
                             } else {
                                 p.sendMessage(ChatColor.DARK_RED + "Error" + ChatColor.RESET + ": you don't have any homes.");
                                 return true;
@@ -134,13 +143,22 @@ public class HomeCommand implements CommandExecutor {
                         p.sendMessage(ChatColor.GOLD + "Commands:" + ChatColor.RESET + "\n/home add <name>\n/home remove <name>\n/home list");
                         return true;
                 }
-                // Add playerHomes array to HashMap
-                if (allHomes.isEmpty()) {
+
+                // Console & Log
+                getLogger().info("" + p.getName() + "'s new homes: " + playerHomes.toString());
+
+                // If HashMap is null or empty
+                if (allHomes == null || allHomes.isEmpty() == true) {
                     allHomes.put(unique_id, playerHomes);
-                } else {
+                }
+                // If HashMap contains data
+                else {
+                    // If HashMap contains data for player
                     if (allHomes.containsKey(unique_id)) {
                         allHomes.replace(unique_id, playerHomes);
-                    } else {
+                    }
+                    // If HashMap doesn't contain data for player
+                    else {
                         allHomes.put(unique_id, playerHomes);
                     }
                 }
