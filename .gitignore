@@ -24,10 +24,11 @@ out/
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
 
-# Gradle and Maven with auto-import
+
+### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/*.iml
 .idea/modules
@@ -36,3 +37,11 @@ hs_err_pid*
 
 # File-based project format
 *.iws
+
+
+### VisualStudioCode ###
+/.settings/
+/target/
+.project
+.classpath
+
