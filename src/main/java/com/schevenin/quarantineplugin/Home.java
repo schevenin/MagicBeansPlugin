@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 public class Home implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private String home_name;
     private double x_coordinate;
     private double y_coordinate;
