@@ -92,7 +92,6 @@ public final class QuarantinePlugin extends JavaPlugin {
             // If data files don't exist
             if (!userHomeDataFile.exists()) {
                 userHomeDataFile.createNewFile();
-                allHomes = new HashMap<>();
                 getLogger().info("Creating file: data.json");
             }
             if (!userHomeDataFileBackup.exists()) {
@@ -101,22 +100,42 @@ public final class QuarantinePlugin extends JavaPlugin {
             }
             // If data files exists
             if (userHomeDataFile.exists() && userHomeDataFileBackup.exists()) {
-                // Deserialize JSON
-                String jsonString = FileUtils.readFileToString(userHomeDataFile, StandardCharsets.UTF_8);
+                String jsonString;
+                Type homeMapType;
                 Gson gson = new Gson();
-                Type homeMapType = new TypeToken<Map<String, List<Home>>>() {}.getType();
-                allHomes = gson.fromJson(jsonString, homeMapType);
-
-                // Check for null reference or empty
-                if (allHomes == null || allHomes.isEmpty() == true) {
-                    allHomes = new HashMap<>();
-                    getLogger().info("JSON --> HashMap: FAIL (JSON is null or empty.)");
+                allHomes = new HashMap<>();
+                if (userHomeDataFile.length() == 0) {
+                    getLogger().info("JSON file is empty, checking backup.");
+                    if (userHomeDataFileBackup.length() == 0) {
+                        getLogger().info("Backup JSON file is empty.");
+                    } else {
+                        getLogger().info("Attempting to read from backup JSON.");
+                        jsonString = FileUtils.readFileToString(userHomeDataFileBackup, StandardCharsets.UTF_8);
+                        homeMapType = new TypeToken<Map<String, List<Home>>>() {}.getType();
+                        allHomes = gson.fromJson(jsonString, homeMapType);
+                        
+                        if (allHomes == null || allHomes.isEmpty() == true) {
+                            getLogger().info("No data found in file: data.json.backup");
+                            allHomes = new HashMap<>();
+                        } else {
+                            getLogger().info("Backup JSON --> HashMap: SUCCESS");
+                        }
+                    }
                 } else {
-                    // Success
-                    getLogger().info("JSON --> HashMap: SUCCESS");
+                    getLogger().info("Attempting to read from JSON.");
+                    jsonString = FileUtils.readFileToString(userHomeDataFileBackup, StandardCharsets.UTF_8);
+                    homeMapType = new TypeToken<Map<String, List<Home>>>() {}.getType();
+                    allHomes = gson.fromJson(jsonString, homeMapType);
+                    
+                    if (allHomes == null || allHomes.isEmpty() == true) {
+                        getLogger().info("No data found in file: data.json");
+                        allHomes = new HashMap<>();
+                    } else {
+                        getLogger().info("JSON --> HashMap: SUCCESS");
+                    }
                 }
             } else {
-                getLogger().info("File error: files could not be found.");
+                getLogger().info("Data files could not be found.");
             }
         } catch (FileNotFoundException e) {
            e.printStackTrace();
@@ -158,7 +177,7 @@ public final class QuarantinePlugin extends JavaPlugin {
         try {
             // If data file doesn't exist
             if (!userHomeDataFileBackup.exists()) {
-                getLogger().info("HashMap --> Backup: FAIL (No data file found.)");
+                getLogger().info("HashMap --> Backup JSON: FAIL (No data file found.)");
             } else {
                 // Serialize HashMap
                 Gson gson = new Gson();
@@ -166,7 +185,7 @@ public final class QuarantinePlugin extends JavaPlugin {
                 Files.write(Paths.get(String.valueOf(userHomeDataFileBackup)), jsonFormat.getBytes());
 
                 // Success
-                getLogger().info("HashMap --> Backup: SUCCESS");
+                getLogger().info("HashMap --> Backup JSON: SUCCESS");
             }
         } catch (Exception e) {
             e.printStackTrace();
