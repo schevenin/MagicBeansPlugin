@@ -1,5 +1,5 @@
-# QuarantinePlugin
-Spigot 1.15.2 plugin I made in java using maven pmt
+# MagicBeans Plugin
+Spigot 1.15.2 plugin I made in Java
 
 Commands:
 - magicbeans
@@ -8,3 +8,4 @@ Commands:
 - eat
 - heal
 - god
+- help
